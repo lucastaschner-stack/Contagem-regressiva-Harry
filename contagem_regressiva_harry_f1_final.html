@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contagem Regressiva — Harry na Fórmula 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    min-height:100vh;font-family:'Rajdhani',sans-serif;color:#fff;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(225,6,0,.35), transparent 45%),
+      radial-gradient(circle at 80% 80%, rgba(0,110,255,.30), transparent 45%),
+      linear-gradient(135deg,#07080d 0%,#101420 55%,#07080d 100%);
+    display:flex;align-items:center;justify-content:center;padding:24px;overflow-x:hidden;
+  }
+  .speed-lines{
+    position:fixed;inset:0;pointer-events:none;opacity:.16;
+    background:repeating-linear-gradient(90deg,transparent 0 68px,#e10600 68px 70px,transparent 70px 140px);
+    animation:move 1.1s linear infinite;
+  }
+  @keyframes move{to{background-position:140px 0}}
+  .card{
+    position:relative;width:min(960px,100%);border:1px solid rgba(255,255,255,.14);
+    border-radius:22px;padding:42px 28px;text-align:center;background:rgba(10,12,18,.72);
+    backdrop-filter:blur(12px);box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.10);
+  }
+  .flag{display:inline-flex;gap:2px;margin-bottom:18px}
+  .flag span{width:9px;height:26px;border-radius:2px}
+  .flag span:nth-child(1){background:#e10600}
+  .flag span:nth-child(2){background:#fff}
+  .flag span:nth-child(3){background:#15151e}
+  .eyebrow{font-family:'Orbitron',sans-serif;font-size:clamp(.72rem,2.6vw,.9rem);letter-spacing:.42em;color:#e10600;text-transform:uppercase;margin-bottom:14px}
+  h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(1.7rem,6vw,3.4rem);line-height:1.08;text-transform:uppercase;text-shadow:0 0 24px rgba(225,6,0,.45)}
+  h1 .name{color:#ffd400}
+  .subtitle{margin-top:14px;font-size:clamp(1rem,3vw,1.25rem);color:#cfd6e4;max-width:640px;margin-left:auto;margin-right:auto}
+  .subtitle b{color:#fff}
+  .timer{margin-top:34px;display:grid;grid-template-columns:repeat(4,minmax(70px,1fr));gap:12px}
+  .unit{padding:20px 8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.15);box-shadow:0 14px 30px rgba(0,0,0,.35)}
+  .value{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2rem,9vw,4rem);line-height:1;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.25)}
+  .label{margin-top:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;font-size:clamp(.6rem,2.2vw,.78rem);color:#aeb8c9}
+  .hours .value{color:#e10600;text-shadow:0 0 22px rgba(225,6,0,.65)}
+  .minutes .value{color:#ffd400;text-shadow:0 0 22px rgba(255,212,0,.55)}
+  .seconds .value{color:#00d2ff;text-shadow:0 0 22px rgba(0,210,255,.55)}
+  .deadline{margin-top:26px;font-size:.95rem;color:#98a2b3}
+  .deadline b{color:#fff}
+  .status{margin-top:22px;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(.8rem,3vw,1.05rem);color:#00ff9d;min-height:1.4em}
+  .status.done{color:#ffd400;text-shadow:0 0 22px rgba(255,212,0,.6)}
+  .checker{margin-top:30px;height:16px;background:repeating-conic-gradient(#fff 0% 25%,#111 0% 50%) 0 0/16px 16px;border-radius:8px;opacity:.85}
+  @media(max-width:520px){.timer{grid-template-columns:repeat(2,1fr)}.card{padding:32px 18px}}
+</style>
+</head>
+<body>
+<div class="speed-lines"></div>
+<main class="card">
+  <div class="flag"><span></span><span></span><span></span></div>
+  <div class="eyebrow">Venda Extraordinária • Fórmula 1</div>
+  <h1>Harry, é hora de<br><span class="name">garantir seu ingresso!</span></h1>
+  <p class="subtitle">Contagem regressiva para <b>Guilherme Dias</b>, mais conhecido como <b>Harry</b>, comprar o ingresso da <b>Fórmula 1</b> na Venda Extraordinária.</p>
+
+  <section class="timer" aria-live="polite">
+    <div class="unit days"><div class="value" id="days">--</div><div class="label">Dias</div></div>
+    <div class="unit hours"><div class="value" id="hours">--</div><div class="label">Horas</div></div>
+    <div class="unit minutes"><div class="value" id="minutes">--</div><div class="label">Minutos</div></div>
+    <div class="unit seconds"><div class="value" id="seconds">--</div><div class="label">Segundos</div></div>
+  </section>
+
+  <p class="deadline">Prazo final: <b>14/10/2026 às 12:00</b> (horário de Brasília)</p>
+  <div class="status" id="status">A pista está liberada — corra para garantir o ingresso!</div>
+  <div class="checker"></div>
+</main>
+
+<script>
+  // 14 de outubro de 2026, 12:00 no horário local do dispositivo.
+  // Mês 9 = outubro, porque os meses começam em 0 no JavaScript.
+  const target = new Date(2026, 9, 14, 12, 0, 0).getTime();
+
+  const el = {
+    days: document.getElementById('days'),
+    hours: document.getElementById('hours'),
+    minutes: document.getElementById('minutes'),
+    seconds: document.getElementById('seconds'),
+    status: document.getElementById('status')
+  };
+
+  const pad = n => String(n).padStart(2, '0');
+
+  function updateCountdown() {
+    const diff = target - Date.now();
+
+    if (diff <= 0) {
+      el.days.textContent = '00';
+      el.hours.textContent = '00';
+      el.minutes.textContent = '00';
+      el.seconds.textContent = '00';
+      el.status.textContent = 'Bandeira quadriculada! O prazo chegou ao fim.';
+      el.status.classList.add('done');
+      clearInterval(timer);
+      return;
+    }
+
+    el.days.textContent = pad(Math.floor(diff / 86400000));
+    el.hours.textContent = pad(Math.floor(diff % 86400000 / 3600000));
+    el.minutes.textContent = pad(Math.floor(diff % 3600000 / 60000));
+    el.seconds.textContent = pad(Math.floor(diff % 60000 / 1000));
+  }
+
+  updateCountdown();
+  const timer = setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
